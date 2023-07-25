@@ -1,3 +1,6 @@
+/*
+Package recordmapper provides a function to scan multiple structs from a single row.
+*/
 package recordmapper
 
 import (
@@ -13,11 +16,13 @@ var (
 	ErrNumOfColumnsNotMatch      = errors.New("number of columns not match")
 )
 
+// Rows is an interface for sql.Rows.
 type Rows interface {
 	Columns() ([]string, error)
 	Scan(dest ...interface{}) error
 }
 
+// Scan scans multiple structs from a single row.
 func Scan(rows Rows, delim string, dest ...any) error {
 	columns, err := rows.Columns()
 	if err != nil {
@@ -40,7 +45,7 @@ func Scan(rows Rows, delim string, dest ...any) error {
 	}
 	var values []any
 	for i, group := range columnGroups {
-		v, err := bind(group, dest[i])
+		v, err := createScanValues(group, dest[i])
 		if err != nil {
 			return err
 		}
@@ -57,11 +62,11 @@ func Scan(rows Rows, delim string, dest ...any) error {
 	return rows.Scan(values...)
 }
 
-type MapperFunc func(columns []string, v reflect.Value) []any
+type mapperFunc func(columns []string, v reflect.Value) []any
 
-var cache = make(map[reflect.Type]MapperFunc)
+var cache = make(map[reflect.Type]mapperFunc)
 
-func bind(columns []string, dest any) ([]any, error) {
+func createScanValues(columns []string, dest any) ([]any, error) {
 	v := reflect.ValueOf(dest)
 	mapper, ok := cache[v.Type()]
 	if !ok {
@@ -75,7 +80,7 @@ func bind(columns []string, dest any) ([]any, error) {
 	return mapper(columns, v), nil
 }
 
-func createMapper(v reflect.Value) (MapperFunc, error) {
+func createMapper(v reflect.Value) (mapperFunc, error) {
 	if v.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("dest must be a pointer")
 	}
