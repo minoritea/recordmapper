@@ -29,13 +29,16 @@ func TestScan(t *testing.T) {
 	var testRows = testRows{
 		{"id", 1},
 		{"name", "test"},
+		{"NULL", ""},
+		{"id", 2},
+		{"name", "test2"},
 	}
 	type testStruct struct {
 		ID   int
 		Name string
 	}
-	var ts testStruct
-	err := Scan(testRows, "", &ts)
+	var ts, ts2 testStruct
+	err := Scan(testRows, "NULL", &ts, &ts2)
 	if err != nil {
 		t.Fatal(err)
 	}

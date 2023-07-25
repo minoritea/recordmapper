@@ -45,6 +45,10 @@ func Scan(rows Rows, delim string, dest ...any) error {
 			return err
 		}
 		values = append(values, v...)
+
+		if len(columnGroups)-1 != i {
+			values = append(values, new(any))
+		}
 	}
 	if len(values) != len(columns) {
 		return fmt.Errorf("%w: %d != %d", ErrNumOfColumnsNotMatch, len(values), len(columns))
