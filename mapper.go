@@ -67,6 +67,19 @@ type mapperFunc func(columns []string, v reflect.Value) []any
 var cache = make(map[reflect.Type]mapperFunc)
 
 func createScanValues(columns []string, dest any) ([]any, error) {
+	if d, ok := dest.(ColumnMapper); ok {
+		m := d.ColumnMap()
+		var values []any
+		for _, c := range columns {
+			v, ok := m[c]
+			if !ok {
+				continue
+			}
+			values = append(values, v)
+		}
+		return values, nil
+	}
+
 	v := reflect.ValueOf(dest)
 	mapper, ok := cache[v.Type()]
 	if !ok {
@@ -115,4 +128,8 @@ func createMapper(v reflect.Value) (mapperFunc, error) {
 		}
 		return values
 	}, nil
+}
+
+type ColumnMapper interface {
+	ColumnMap() map[string]any
 }
