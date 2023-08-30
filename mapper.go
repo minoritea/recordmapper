@@ -106,7 +106,11 @@ func createMapper(v reflect.Value) (mapperFunc, error) {
 		var values []any
 		base := reflect.Indirect(v)
 		for _, column := range columns {
-			v := base.FieldByIndex(fieldIndexMap[column])
+			index, ok := fieldIndexMap[column]
+			if !ok {
+				continue
+			}
+			v := base.FieldByIndex(index)
 			values = append(values, v.Addr().Interface())
 		}
 		return values
